@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class Request {
     private String action;
-
     private Map<String, Object> body;
 
     public Request(String action){

@@ -1,6 +1,7 @@
 package org.example.realestateadsclient.server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.example.realestateadsclient.model.Request;
 
 import java.io.IOException;
@@ -33,19 +34,26 @@ public class SendToServer {
     public void setBody(Map<String, Object> body) {
         this.body = body;
     }
-    public static void saveToServer(Request request) {
-        PrintWriter writer = null;
-        try {
-            Socket myServer = new Socket("localhost", 12346);
-            writer = new PrintWriter(myServer.getOutputStream(), true);
-            // Convert the body to JSON
-            Gson gson = new Gson();
-            String jsonBody = gson.toJson(request);
-            writer.println(jsonBody);
-            writer.flush();
 
+    private static final Gson gson = new GsonBuilder().create();
+    public static void saveToServer(Request request) {
+        System.out.println("checkPoint1");
+        //Socket socket = null;
+        try (
+                // Create a socket connection to the server
+                Socket myServer = new Socket("localhost", 12346);
+                // Create a PrintWriter for writing data to the socket's output stream
+                PrintWriter writer = new PrintWriter(myServer.getOutputStream(), true);
+        ) {
+            // Convert the request object to JSON
+            String jsonRequest = gson.toJson(request);
+            System.out.println("checkPoint2");
+            // Send the JSON data to the server
+            writer.println(jsonRequest);
+            writer.flush(); // Flush the buffer to ensure data is sent immediately
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            // Handle exceptions such as connection failure
+            e.printStackTrace();
         }
     }
 }

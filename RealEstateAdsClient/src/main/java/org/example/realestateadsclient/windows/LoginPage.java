@@ -7,10 +7,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import org.example.realestateadsclient.server.GetFromServer;
 import org.example.realestateadsclient.server.SendToServer;
 import org.example.realestateadsclient.model.Request;
 import org.example.realestateadsclient.model.User;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +40,25 @@ public class LoginPage extends Application {
             String username = usernameField.getText();
             String password = passwordField.getText();
             // Call method to send login request to server
-            sendLoginRequest(username, password);
+            boolean bool = false;
+            try {
+                bool = sendLoginRequest(username, password);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (bool){
+                primaryStage.close();
+                UserPage userPage = new UserPage();
+            }
+            else{
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Login Error");
+                alert.setHeaderText(null);
+                alert.setContentText("Wrong username or password");
+
+                // Show the alert dialog
+                alert.showAndWait();
+            }
         });
 
         // Set action for register button
@@ -72,16 +92,25 @@ public class LoginPage extends Application {
     }
 
     // Method to send login request to server
-    private void sendLoginRequest(String username, String password) {
+    private boolean sendLoginRequest(String username, String password) throws IOException {
         User user = new User(username, password);
         Map<String, Object> reqMap = new HashMap<>();
         reqMap.put("verifyUser", user);
         Request request = new Request("verifyUser", reqMap);
         SendToServer.saveToServer(request);
+        GetFromServer getFromServer = new GetFromServer();
+        reqMap = getFromServer.process();
+        if (reqMap.containsKey(false)){
+            return false;
+        }
+        else if (reqMap.containsKey(true)){
+            return true;
+        }
+        return false;
     }
 
     // Method to send register request to server
-    private void sendRegisterRequest(User newUser) {
+    private void sendRegisterRequest(User newUser) throws IOException {
         // Implement logic to send register request to server
 
         Map<String, Object> reqMap = new HashMap<>();
@@ -89,6 +118,8 @@ public class LoginPage extends Application {
         Request request = new Request("verifyUser", reqMap);
         SendToServer.saveToServer(request);
 
+        GetFromServer getFromServer = new GetFromServer();
+        reqMap = getFromServer.process();
     }
 
     public static void main(String[] args) {

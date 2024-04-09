@@ -7,9 +7,15 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import org.example.realestateadsclient.model.Request;
 import org.example.realestateadsclient.model.User;
+import org.example.realestateadsclient.server.GetFromServer;
+import org.example.realestateadsclient.server.SendToServer;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterPage extends Application {
 
@@ -47,7 +53,11 @@ public class RegisterPage extends Application {
 
             User newUser = new User(username, password, phoneNum,email, new ArrayList<>());
             // Call method to send registration request to server
-            sendRegistrationRequest(newUser, (Stage) registerButton.getScene().getWindow());
+            try {
+                sendRegistrationRequest(newUser, (Stage) registerButton.getScene().getWindow());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
 
@@ -77,16 +87,36 @@ public class RegisterPage extends Application {
 
     // Method to send registration request to server
     // Method to send registration request to server
-    private void sendRegistrationRequest(User user, Stage primaryStage) {
+    private void sendRegistrationRequest(User user, Stage primaryStage) throws IOException {
         // Implement logic to send registration request to server
         System.out.println("Sending registration request for user: " + user.getUserName());
+        Map<String, Object> map = new HashMap<>();
+        map.put("Register", user);
+        Request request = new Request("Register", map);
+
+        SendToServer.saveToServer(request);
+        GetFromServer getFromServer = new GetFromServer();
+
+        map = getFromServer.process();
+        if (map.containsKey("false")){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Registration Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Failed to register");
+
+            // Show the alert dialog
+            alert.showAndWait();
+        }
+        else if (map.containsKey("true")){
+            primaryStage.close();
+
+            // Open a new login window
+            LoginPage loginPage = new LoginPage();
+            loginPage.start(new Stage());
+        }
 
         // Close the current registration window
-        primaryStage.close();
 
-        // Open a new login window
-        LoginPage loginPage = new LoginPage();
-        loginPage.start(new Stage());
     }
 
 

@@ -11,6 +11,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import org.example.realestateadsclient.model.Ad;
+import org.example.realestateadsclient.model.User;
 
 import java.io.IOException;
 
